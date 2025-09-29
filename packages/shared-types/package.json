@@ -1,7 +1,7 @@
 {
   "name": "@zariya/shared-types",
   "version": "1.0.0",
-  "description": "Shared types for Zariya Facility App",
+  "description": "Shared TypeScript types for Zariya Facility App",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

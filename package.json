@@ -1,5 +1,5 @@
 {
-  "name": "zariya-monorepo",
+"name": "zariya-monorepo",
   "private": true,
   "scripts": {
     "build": "turbo run build",
