@@ -1,15 +1,15 @@
-import { Client } from 'pg';
-import { BaseRepository, FilterQuery, UpdateQuery } from './base.repository';
-import { Media, MediaType, MediaContext } from '@facility-app/shared-types';
+import { EntityRepository, Repository } from 'typeorm';
+import { MediaEntity } from '../entities/media.entity';
+import { Media, MediaContext, MediaType } from '@zariya/shared-types';
 
-export interface MediaFilter extends FilterQuery<Media> {
+export interface MediaFilter {
   type?: MediaType | MediaType[];
   context?: MediaContext | MediaContext[];
   ticketId?: string;
   uploadedBy?: string;
 }
 
-export interface MediaUpdate extends UpdateQuery<Media> {
+export interface MediaUpdate {
   filename?: string;
   originalName?: string;
   mimetype?: string;
@@ -20,74 +20,176 @@ export interface MediaUpdate extends UpdateQuery<Media> {
   uploadedBy?: string;
 }
 
-export class MediaRepository extends BaseRepository<Media> {
-  constructor(client: Client) {
-    super('media', client);
+@EntityRepository(MediaEntity)
+export class MediaRepository extends Repository<MediaEntity> {
+  async createMedia(mediaData: Partial<Media>): Promise<Media> {
+    const media = this.create({
+      ...mediaData,
+      uploadedAt: new Date(),
+      isActive: true,
+    });
+
+    const savedMedia = await this.save(media);
+    return this.mapToMedia(savedMedia);
   }
 
-  async findByTicket(ticketId: string): Promise<Media[]> {
-    return this.findAll({ ticketId });
+  async findById(id: string): Promise<Media | null> {
+    const media = await this.findOne({ where: { id, isActive: true } });
+    return media ? this.mapToMedia(media) : null;
   }
 
-  async findByUploadedBy(uploadedBy: string): Promise<Media[]> {
-    return this.findAll({ uploadedBy });
-  }
+  async findByTicketId(ticketId: string): Promise<Media[]> {
+    const mediaList = await this.find({
+      where: { ticketId, isActive: true },
+      order: { uploadedAt: 'DESC' },
+    });
 
-  async findByType(type: MediaType): Promise<Media[]> {
-    return this.findAll({ type });
+    return mediaList.map(media => this.mapToMedia(media));
   }
 
   async findByContext(context: MediaContext): Promise<Media[]> {
-    return this.findAll({ context });
+    const mediaList = await this.find({
+      where: { context, isActive: true },
+      order: { uploadedAt: 'DESC' },
+    });
+
+    return mediaList.map(media => this.mapToMedia(media));
+  }
+
+  async findByUploadedBy(uploadedBy: string): Promise<Media[]> {
+    const mediaList = await this.find({
+      where: { uploadedBy, isActive: true },
+      order: { uploadedAt: 'DESC' },
+    });
+
+    return mediaList.map(media => this.mapToMedia(media));
+  }
+
+  async findByType(type: MediaType): Promise<Media[]> {
+    const mediaList = await this.find({
+      where: { type, isActive: true },
+      order: { uploadedAt: 'DESC' },
+    });
+
+    return mediaList.map(media => this.mapToMedia(media));
   }
 
   async findTicketImages(ticketId: string): Promise<Media[]> {
-    const query = `
-      SELECT * FROM media
-      WHERE ticket_id = $1 AND type = 'Image'
-      ORDER BY uploaded_at ASC
-    `;
-
-    const result = await this.client.query(query, [ticketId]);
-    return result.rows.map(row => this.transformToCamelCase(row));
+    return this.find({
+      where: { ticketId, type: MediaType.IMAGE, isActive: true },
+      order: { uploadedAt: 'ASC' },
+    });
   }
 
   async findTicketVideos(ticketId: string): Promise<Media[]> {
-    const query = `
-      SELECT * FROM media
-      WHERE ticket_id = $1 AND type = 'Video'
-      ORDER BY uploaded_at ASC
-    `;
-
-    const result = await this.client.query(query, [ticketId]);
-    return result.rows.map(row => this.transformToCamelCase(row));
+    return this.find({
+      where: { ticketId, type: MediaType.VIDEO, isActive: true },
+      order: { uploadedAt: 'ASC' },
+    });
   }
 
-  async createWithDetails(mediaData: Omit<Media, 'id' | 'uploadedAt'> & { createdAt: Date; updatedAt: Date }): Promise<Media> {
-    const query = `
-      INSERT INTO media (id, filename, original_name, mimetype, size, type, context, ticket_id, uploaded_by, uploaded_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
-      RETURNING *
-    `;
+  async findWithFilter(filter: MediaFilter): Promise<Media[]> {
+    const where: any = { isActive: true };
 
-    const values = [
-      mediaData.filename,
-      mediaData.originalName,
-      mediaData.mimetype,
-      mediaData.size,
-      mediaData.type,
-      mediaData.context,
-      mediaData.ticketId,
-      mediaData.uploadedBy
-    ];
+    if (filter.ticketId) where.ticketId = filter.ticketId;
+    if (filter.uploadedBy) where.uploadedBy = filter.uploadedBy;
+    if (filter.context) where.context = filter.context;
+    if (filter.type) {
+      where.type = Array.isArray(filter.type) ? filter.type : [filter.type];
+    }
 
-    const result = await this.client.query(query, values);
-    return this.transformToCamelCase(result.rows[0]);
+    const mediaList = await this.find({
+      where,
+      order: { uploadedAt: 'DESC' },
+    });
+
+    return mediaList.map(media => this.mapToMedia(media));
   }
 
-  async deleteByTicket(ticketId: string): Promise<boolean> {
-    const query = `DELETE FROM media WHERE ticket_id = $1`;
-    const result = await this.client.query(query, [ticketId]);
-    return (result.rowCount || 0) > 0;
+  async updateMedia(id: string, updateData: MediaUpdate): Promise<Media | null> {
+    await this.update(id, updateData);
+    return this.findById(id);
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.update(id, { isActive: false });
+  }
+
+  async deleteByTicketId(ticketId: string): Promise<void> {
+    await this.update(
+      { ticketId },
+      { isActive: false }
+    );
+  }
+
+  async findAll(): Promise<Media[]> {
+    const mediaList = await this.find({
+      where: { isActive: true },
+      order: { uploadedAt: 'DESC' },
+    });
+
+    return mediaList.map(media => this.mapToMedia(media));
+  }
+
+  async getStorageStats(): Promise<{
+    totalFiles: number;
+    totalSize: number;
+    byType: Record<MediaType, { count: number; size: number }>;
+  }> {
+    const mediaList = await this.find({ where: { isActive: true } });
+
+    const stats = {
+      totalFiles: mediaList.length,
+      totalSize: BigInt(0),
+      byType: {
+        [MediaType.IMAGE]: { count: 0, size: BigInt(0) },
+        [MediaType.VIDEO]: { count: 0, size: BigInt(0) },
+      } as Record<MediaType, { count: number; size: bigint }>,
+    };
+
+    mediaList.forEach(media => {
+      const size = BigInt(media.size);
+      stats.totalSize += size;
+
+      if (stats.byType[media.type]) {
+        stats.byType[media.type].count++;
+        stats.byType[media.type].size += size;
+      }
+    });
+
+    return {
+      ...stats,
+      totalSize: Number(stats.totalSize),
+      byType: {
+        [MediaType.IMAGE]: {
+          count: stats.byType[MediaType.IMAGE].count,
+          size: Number(stats.byType[MediaType.IMAGE].size),
+        },
+        [MediaType.VIDEO]: {
+          count: stats.byType[MediaType.VIDEO].count,
+          size: Number(stats.byType[MediaType.VIDEO].size),
+        },
+      },
+    };
+  }
+
+  private mapToMedia(entity: MediaEntity): Media {
+    return {
+      id: entity.id,
+      filename: entity.filename,
+      originalName: entity.originalName,
+      mimetype: entity.mimetype,
+      size: Number(entity.size),
+      type: entity.type,
+      context: entity.context,
+      ticketId: entity.ticketId,
+      uploadedBy: entity.uploadedBy,
+      uploadedAt: entity.uploadedAt,
+      thumbnailPath: entity.thumbnailPath,
+      compressedPath: entity.compressedPath,
+      isActive: entity.isActive,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
   }
 }

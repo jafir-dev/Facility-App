@@ -1,0 +1,1 @@
+export declare function RateLimit(limit: number, ttl: number): <TFunction extends Function, Y>(target: TFunction | object, propertyKey?: string | symbol, descriptor?: TypedPropertyDescriptor<Y>) => void;
