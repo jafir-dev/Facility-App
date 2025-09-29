@@ -1,14 +1,17 @@
 {
-  "name": "@facility-app/shared-types",
+  "name": "@zariya/shared-types",
   "version": "1.0.0",
-  "description": "Shared types for Facility App",
+  "description": "Shared types for Zariya Facility App",
+  "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "clean": "rimraf dist"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "rimraf": "^5.0.0"
   }
 }
