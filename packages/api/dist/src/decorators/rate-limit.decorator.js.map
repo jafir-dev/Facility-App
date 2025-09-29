@@ -1,0 +1,1 @@
+{"version":3,"file":"rate-limit.decorator.js","sourceRoot":"","sources":["../../../src/decorators/rate-limit.decorator.ts"],"names":[],"mappings":";;AAGA,8BAKC;AARD,2CAA4D;AAC5D,iDAA6D;AAE7D,SAAgB,SAAS,CAAC,KAAa,EAAE,GAAW;IAClD,OAAO,IAAA,wBAAe,EACpB,IAAA,kBAAS,EAAC,0BAAc,CAAC,EACzB,IAAA,oBAAQ,EAAC,KAAK,EAAE,GAAG,CAAC,CACrB,CAAC;AACJ,CAAC"}
