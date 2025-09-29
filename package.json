@@ -7,7 +7,10 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "clean": "turbo run clean",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "migration:run": "npm run migration:run -w @facility-app/api",
+    "migration:create": "npm run migration:create -w @facility-app/api",
+    "seed": "npm run seed -w @facility-app/api"
   },
   "workspaces": [
     "apps/*",

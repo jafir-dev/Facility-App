@@ -1,5 +1,15 @@
 // Shared TypeScript types for Zariya Facility App
 
+// Core interfaces - modular exports
+export * from './user';
+export * from './property';
+export * from './ticket';
+export * from './media';
+
+// Notification types
+export * from './notifications';
+
+// Legacy compatibility - keep existing interfaces for backward compatibility
 export interface User {
   id: string;
   email: string;
