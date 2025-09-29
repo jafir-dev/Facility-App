@@ -1,0 +1,26 @@
+{
+  "name": "@facility-app/api",
+  "version": "1.0.0",
+  "description": "API package for Facility App",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "migration:run": "node dist/migration/run.js",
+    "migration:create": "node dist/migration/create.js",
+    "seed": "node dist/seed/run.js"
+  },
+  "dependencies": {
+    "@facility-app/shared-types": "1.0.0",
+    "pg": "^8.11.0",
+    "typeorm": "^0.3.17",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.10.0",
+    "@types/uuid": "^9.0.0",
+    "typescript": "^5.0.0"
+  }
+}
