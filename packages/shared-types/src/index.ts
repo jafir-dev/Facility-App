@@ -41,3 +41,5 @@ export interface Ticket {
   createdAt: Date;
   updatedAt: Date;
 }
+// Notification types
+export * from './notifications';

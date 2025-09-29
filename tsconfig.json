@@ -3,20 +3,21 @@
     "target": "ES2020",
     "module": "commonjs",
     "lib": ["ES2020"],
+    "declaration": true,
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "./packages",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "composite": true,
     "resolveJsonModule": true,
-    "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@facility-app/shared-types": ["./packages/shared-types/src"],
-      "@facility-app/api": ["./packages/api/src"]
+      "@zariya/shared-types": ["./packages/shared-types/src"],
+      "@zariya/api": ["./packages/api/src"]
     }
   },
   "include": [
