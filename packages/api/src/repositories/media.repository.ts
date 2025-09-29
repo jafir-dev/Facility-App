@@ -1,6 +1,24 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { MediaEntity } from '../entities/media.entity';
-import { Media, MediaContext, MediaType } from '../types/media';
+import { Media, MediaContext, MediaType } from '@zariya/shared-types';
+
+export interface MediaFilter {
+  type?: MediaType | MediaType[];
+  context?: MediaContext | MediaContext[];
+  ticketId?: string;
+  uploadedBy?: string;
+}
+
+export interface MediaUpdate {
+  filename?: string;
+  originalName?: string;
+  mimetype?: string;
+  size?: number;
+  type?: MediaType;
+  context?: MediaContext;
+  ticketId?: string;
+  uploadedBy?: string;
+}
 
 @EntityRepository(MediaEntity)
 export class MediaRepository extends Repository<MediaEntity> {
@@ -36,6 +54,61 @@ export class MediaRepository extends Repository<MediaEntity> {
     });
 
     return mediaList.map(media => this.mapToMedia(media));
+  }
+
+  async findByUploadedBy(uploadedBy: string): Promise<Media[]> {
+    const mediaList = await this.find({
+      where: { uploadedBy, isActive: true },
+      order: { uploadedAt: 'DESC' },
+    });
+
+    return mediaList.map(media => this.mapToMedia(media));
+  }
+
+  async findByType(type: MediaType): Promise<Media[]> {
+    const mediaList = await this.find({
+      where: { type, isActive: true },
+      order: { uploadedAt: 'DESC' },
+    });
+
+    return mediaList.map(media => this.mapToMedia(media));
+  }
+
+  async findTicketImages(ticketId: string): Promise<Media[]> {
+    return this.find({
+      where: { ticketId, type: MediaType.IMAGE, isActive: true },
+      order: { uploadedAt: 'ASC' },
+    });
+  }
+
+  async findTicketVideos(ticketId: string): Promise<Media[]> {
+    return this.find({
+      where: { ticketId, type: MediaType.VIDEO, isActive: true },
+      order: { uploadedAt: 'ASC' },
+    });
+  }
+
+  async findWithFilter(filter: MediaFilter): Promise<Media[]> {
+    const where: any = { isActive: true };
+
+    if (filter.ticketId) where.ticketId = filter.ticketId;
+    if (filter.uploadedBy) where.uploadedBy = filter.uploadedBy;
+    if (filter.context) where.context = filter.context;
+    if (filter.type) {
+      where.type = Array.isArray(filter.type) ? filter.type : [filter.type];
+    }
+
+    const mediaList = await this.find({
+      where,
+      order: { uploadedAt: 'DESC' },
+    });
+
+    return mediaList.map(media => this.mapToMedia(media));
+  }
+
+  async updateMedia(id: string, updateData: MediaUpdate): Promise<Media | null> {
+    await this.update(id, updateData);
+    return this.findById(id);
   }
 
   async delete(id: string): Promise<void> {

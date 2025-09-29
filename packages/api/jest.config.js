@@ -11,6 +11,7 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/main.ts',
     '!src/**/*.spec.ts',
+    '!src/**/*.entity.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
