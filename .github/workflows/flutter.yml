@@ -1,0 +1,46 @@
+name: Flutter Mobile App
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/mobile/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+
+    - name: Get Flutter dependencies
+      run: |
+        cd apps/mobile
+        flutter pub get
+
+    - name: Run Flutter tests
+      run: |
+        cd apps/mobile
+        flutter test
+
+    - name: Build Android APK
+      run: |
+        cd apps/mobile
+        flutter build apk --debug
+
+    - name: Build iOS (on macOS)
+      if: runner.os == 'macOS'
+      run: |
+        cd apps/mobile
+        flutter build ios --debug --no-codesign
