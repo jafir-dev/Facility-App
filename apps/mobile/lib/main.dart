@@ -6,12 +6,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // Core Services
 import 'core/services/notification_service.dart';
 import 'core/services/offline_storage_service.dart';
+import 'core/services/background_location_service.dart';
 
 // Features
 import 'features/auth/auth_provider.dart';
 import 'features/tickets/providers/ticket_provider.dart';
 import 'features/tickets/presentation/ticket_list_page.dart';
 import 'features/tickets/presentation/create_ticket_page.dart';
+import 'features/tickets/presentation/technician_dashboard_page.dart';
 import 'features/auth/presentation/login_page.dart';
 import 'features/auth/presentation/signup_page.dart';
 
@@ -29,6 +31,9 @@ void main() async {
   final offlineStorageService = OfflineStorageService();
   await offlineStorageService.initialize();
 
+  final backgroundLocationService = BackgroundLocationService();
+  await backgroundLocationService.initialize();
+
   // Set up Dio
   final dio = Dio(BaseOptions(
     baseUrl: 'https://api.example.com', // Replace with actual API URL
@@ -42,7 +47,6 @@ void main() async {
   final authRepository = AuthRepository(dio, secureStorage);
   final ticketRepository = TicketRepository(dio, authRepository);
 
-  
   runApp(
     ProviderScope(
       overrides: [
@@ -62,7 +66,7 @@ class MyApp extends ConsumerWidget {
     final authState = ref.watch(authProvider);
 
     return MaterialApp(
-      title: 'Facility App',
+      title: 'Zariya Technician',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,
@@ -103,18 +107,17 @@ class MyApp extends ConsumerWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-      home: authState.when(
-        initial: () => const SplashScreen(),
-        loading: () => const SplashScreen(),
-        authenticated: (user) => const MainNavigation(),
-        unauthenticated: () => const LoginPage(),
-        error: (errorMessage) => ErrorScreen(error: errorMessage),
-      ),
+      home: authState.isLoading
+          ? const SplashScreen()
+          : authState.user != null
+              ? const TechnicianDashboardPage()
+              : const LoginPage(),
       routes: {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignupPage(),
         '/tickets': (context) => const TicketListPage(),
         '/create-ticket': (context) => const CreateTicketPage(),
+        '/technician-dashboard': (context) => const TechnicianDashboardPage(),
       },
     );
   }
@@ -131,18 +134,18 @@ class SplashScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
-              Icons.home_repair_service,
+              Icons.build,
               size: 80,
               color: Colors.blue,
             ),
             const SizedBox(height: 16),
             Text(
-              'Facility App',
+              'Zariya Technician',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 32),
             const CircularProgressIndicator(),
           ],
         ),
@@ -151,91 +154,73 @@ class SplashScreen extends StatelessWidget {
   }
 }
 
-class ErrorScreen extends StatelessWidget {
-  final String error;
-
-  const ErrorScreen({super.key, required this.error});
+class LoginPage extends ConsumerWidget {
+  const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authNotifier = ref.read(authProvider.notifier);
+    final authState = ref.watch(authProvider);
+
     return Scaffold(
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
+              Icons.build,
+              size: 80,
+              color: Colors.blue,
             ),
             const SizedBox(height: 16),
             Text(
-              'Something went wrong',
-              style: Theme.of(context).textTheme.headlineSmall,
+              'Zariya Technician',
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-            const SizedBox(height: 8),
-            Text(
-              error,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+            const SizedBox(height: 32),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                // TODO: Store email
+              },
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(),
+              ),
+              obscureText: true,
+              onChanged: (value) {
+                // TODO: Store password
+              },
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                // Restart the app
-                Navigator.pushReplacementNamed(context, '/login');
-              },
-              child: const Text('Try Again'),
+            if (authState.error != null)
+              Text(
+                authState.error!,
+                style: const TextStyle(color: Colors.red),
+              ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: authState.isLoading
+                    ? null
+                    : () async {
+                        await authNotifier.login('technician@example.com', 'password');
+                      },
+                child: authState.isLoading
+                    ? const CircularProgressIndicator()
+                    : const Text('Login'),
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class MainNavigation extends ConsumerStatefulWidget {
-  const MainNavigation({super.key});
-
-  @override
-  ConsumerState<MainNavigation> createState() => _MainNavigationState();
-}
-
-class _MainNavigationState extends ConsumerState<MainNavigation> {
-  int _currentIndex = 0;
-
-  final List<Widget> _pages = [
-    const TicketListPage(),
-    const Center(child: Text('Properties')),
-    const Center(child: Text('Profile')),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_repair_service),
-            label: 'Tickets',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.apartment),
-            label: 'Properties',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }

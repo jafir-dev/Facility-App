@@ -21,24 +21,19 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'pnpm'
-
-    - name: Install pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 8
+        cache: 'npm'
 
     - name: Install dependencies
-      run: pnpm install
+      run: npm install
 
     - name: Run linting
-      run: pnpm lint
+      run: npm run lint
 
     - name: Run tests
-      run: pnpm test
+      run: npm run test
 
     - name: Build all apps
-      run: pnpm build
+      run: npm run build
 
   security:
     runs-on: ubuntu-latest
@@ -49,15 +44,10 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'pnpm'
-
-    - name: Install pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 8
+        cache: 'npm'
 
     - name: Install dependencies
-      run: pnpm install
+      run: npm install
 
     - name: Run security audit
-      run: pnpm audit --audit-level=moderate
+      run: npm audit --audit-level=moderate

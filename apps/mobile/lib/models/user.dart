@@ -7,6 +7,7 @@ class User {
   final String lastName;
   final String? phoneNumber;
   final String? profileImageUrl;
+  final String role;
   final List<String> propertyIds;
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -18,6 +19,7 @@ class User {
     required this.lastName,
     this.phoneNumber,
     this.profileImageUrl,
+    required this.role,
     this.propertyIds = const [],
     required this.createdAt,
     this.updatedAt,
@@ -31,6 +33,7 @@ class User {
       lastName: json['lastName'],
       phoneNumber: json['phoneNumber'],
       profileImageUrl: json['profileImageUrl'],
+      role: json['role'] ?? 'tenant',
       propertyIds: List<String>.from(json['propertyIds'] ?? []),
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: json['updatedAt'] != null
@@ -52,6 +55,7 @@ class User {
       'lastName': lastName,
       'phoneNumber': phoneNumber,
       'profileImageUrl': profileImageUrl,
+      'role': role,
       'propertyIds': propertyIds,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
@@ -67,6 +71,7 @@ class User {
     String? lastName,
     String? phoneNumber,
     String? profileImageUrl,
+    String? role,
     List<String>? propertyIds,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -78,6 +83,7 @@ class User {
       lastName: lastName ?? this.lastName,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      role: role ?? this.role,
       propertyIds: propertyIds ?? this.propertyIds,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -95,6 +101,7 @@ class User {
         other.lastName == lastName &&
         other.phoneNumber == phoneNumber &&
         other.profileImageUrl == profileImageUrl &&
+        other.role == role &&
         other.propertyIds == propertyIds &&
         other.createdAt.millisecondsSinceEpoch == createdAt.millisecondsSinceEpoch &&
         (other.updatedAt?.millisecondsSinceEpoch ?? 0) == (updatedAt?.millisecondsSinceEpoch ?? 0);
@@ -108,6 +115,7 @@ class User {
         lastName.hashCode ^
         phoneNumber.hashCode ^
         profileImageUrl.hashCode ^
+        role.hashCode ^
         propertyIds.hashCode ^
         createdAt.millisecondsSinceEpoch ^
         (updatedAt?.millisecondsSinceEpoch ?? 0);

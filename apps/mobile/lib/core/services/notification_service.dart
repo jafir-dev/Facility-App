@@ -220,4 +220,32 @@ class NotificationService {
     await _messaging.deleteToken();
     debugPrint('FCM token deleted');
   }
+
+  Future<void> showLocalNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'technician_channel',
+      'Technician Notifications',
+      channelDescription: 'Notifications for technician activities',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await _localNotifications.show(
+      0,
+      title,
+      body,
+      notificationDetails,
+      payload: payload,
+    );
+  }
 }
